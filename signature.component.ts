@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, HostListener, EventEmitter, ElementRef, Input } from '@angular/core';
+import { Component, OnInit, ViewChild, HostListener, EventEmitter, ElementRef, Output } from '@angular/core';
 
 @Component({
   selector: 'app-signature',
@@ -10,7 +10,7 @@ export class SignatureComponent implements OnInit {
   @ViewChild('canvas') canvasElementRef: ElementRef;
 
   segments: Segment[] = [];
-  savedSignatureAsDataUrl: EventEmitter<string> = new EventEmitter<string>();
+  @Output() savedSignatureAsDataUrl: EventEmitter<string> = new EventEmitter<string>();
   isFocused: boolean;
 
   get canCancel(): boolean { return this.segments.length === 0; }
@@ -18,21 +18,31 @@ export class SignatureComponent implements OnInit {
   private get canvas(): HTMLCanvasElement { return this.canvasElementRef.nativeElement; }
   private get context(): CanvasRenderingContext2D { return this.canvas.getContext("2d"); }
   private isMouseDown: boolean;
+  private previousUserSelectStyle: string;
 
   @HostListener("window:resize", ["$event"]) onWindowResize =
     ($event: UIEvent) => this.resizeCanvas()
 
   @HostListener("document:click", ["$event"]) onClickOutsideSignature =
-    ($event: TouchEvent) => this.isFocused = this.canvas.contains($event.target as Node)
+    ($event: TouchEvent) => this.setFocus(this.canvas.contains($event.target as Node))
 
   @HostListener("document:mousedown", ["$event"]) onDocumentMouseDown =
-    ($event: TouchEvent) => this.isFocused = this.canvas.contains($event.target as Node)
+    ($event: MouseEvent) => this.setFocus(this.canvas.contains($event.target as Node))
 
-  @HostListener("document:touchmove", ["$event"]) onDocumentTouchMove =
-    ($event: TouchEvent) => this.isMouseDown = this.isFocused = this.canvas.contains($event.target as Node)
+  @HostListener("document:mousemove", ["$event"]) onDocumentMouseMove =
+    ($event: MouseEvent) => this.isFocused = this.canvas.contains($event.target as Node)
 
   @HostListener("document:mouseup", ["$event"]) onDocumentMouseUp =
-    ($event: TouchEvent) => this.isMouseDown = false
+    ($event: MouseEvent) => this.drawEnd()
+
+  @HostListener("document:touchstart", ["$event"]) onDocumentTouchStart =
+    ($event: TouchEvent) => this.setFocus(this.canvas.contains($event.target as Node))
+
+  @HostListener("document:touchmove", ["$event"]) onDocumentTouchMove =
+    ($event: TouchEvent) => this.isFocused = this.canvas.contains($event.target as Node)
+
+  @HostListener("document:touchend", ["$event"]) onDocumentTouchEnd =
+    ($event: TouchEvent) => this.drawEnd()
 
   @HostListener("document:scroll", ["$event"]) onDocumentScroll =
     ($event: MouseEvent) => {
@@ -54,7 +64,7 @@ export class SignatureComponent implements OnInit {
   @HostListener("touchmove", ["$event"]) ontouchmove =
     ($event: TouchEvent) => this.drawMove(this.getTouchLocation($event.touches[0]))
 
-  @HostListener("touchend", ["$event"]) ontoucheend = ($event: TouchEvent) => this.isMouseDown = false;
+  @HostListener("touchend", ["$event"]) ontoucheend = ($event: TouchEvent) => this.isMouseDown = false;
 
   @HostListener("mousedown", ["$event"]) onmousedown =
     ($event: MouseEvent) => this.drawDown(this.getTouchLocation($event))
@@ -65,10 +75,10 @@ export class SignatureComponent implements OnInit {
   constructor(private element: ElementRef) {}
 
   ngOnInit(): void {
+    this.previousUserSelectStyle = (document.body as HTMLElement).style.userSelect;
     this.resizeCanvas();
     this.clear();
     this.element.nativeElement.style.background = 'white';
-    (document.body as HTMLElement).style.userSelect = 'none';
   }
 
   private resizeCanvas(): void {
@@ -80,6 +90,7 @@ export class SignatureComponent implements OnInit {
   }
 
   private drawDown(point: Point): void {
+    (document.body as HTMLElement).style.userSelect = 'none';
     this.isMouseDown = true;
     this.segments.push({ points: [point] });
     this.refreshCanvas();
@@ -89,6 +100,16 @@ export class SignatureComponent implements OnInit {
     if (!this.isMouseDown) { return; }
     this.segments[this.segments.length - 1].points.push(point);
     this.refreshCanvas();
+  }
+
+  private drawEnd = () => this.isMouseDown = false;
+
+  private setFocus(focused: boolean): void {
+     this.isFocused = focused;
+     if (!focused) {
+       this.isMouseDown = false;
+       (document.body as HTMLElement).style.userSelect = this.previousUserSelectStyle;
+     }
   }
 
   save = () => this.savedSignatureAsDataUrl.emit(this.canvas.toDataURL());
