@@ -66,7 +66,7 @@ export class SignatureComponent implements OnInit {
 
   ngOnInit(): void {
     this.resizeCanvas();
-    this.reset();
+    this.clear();
     this.element.nativeElement.style.background = 'white';
     (document.body as HTMLElement).style.userSelect = 'none';
   }
@@ -91,9 +91,9 @@ export class SignatureComponent implements OnInit {
     this.refreshCanvas();
   }
 
-  saveSignature = () => this.savedSignatureAsDataUrl.emit(this.canvas.toDataURL());
+  save = () => this.savedSignatureAsDataUrl.emit(this.canvas.toDataURL());
 
-  reset(): void {
+  clear = () => {
     this.segments = [];
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
   }
