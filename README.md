@@ -22,4 +22,5 @@ Tweak for your needs.
 <button (click)="myAwesomeSignaturePad.clear()">Clear</button>
 <button (click)="myAwesomeSignaturePad.save()">Save</button>
 ```
-
+### Demo
+[Plunker](https://embed.plnkr.co/nwzcyGl4ZwduvrptIoKx/)
