@@ -11,9 +11,7 @@ Tweak for your needs.
 ```html
 <!-- This is a place where the signature pad should be used. -->
 <!-- The signature canvas will fill the whole space. In the example, full width and a height of 100px. -->
-<!-- Notice how in the example the style reacts to the state of the component. -->
-<div [ngStyle]="{'border': myAwesomeSignaturePad.isFocused ? '1px solid gray' : '1px solid transparent'}" style="width: 100%; height: 100px;">
-
+<div style="border: 1px solid gray; width: 100%; height: 100px;">
   <!-- When calling "save", the $event received from the component output is your image as a default data URL as PNG -->
   <app-signature (savedSignatureAsDataUrl)="someServiceThatHandlesTheData($event)" #myAwesomeSignaturePad></app-signature>
 </div>
