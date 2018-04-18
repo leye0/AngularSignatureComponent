@@ -12,7 +12,7 @@ export class SignatureComponent implements OnInit {
   segments: Segment[] = [];
   @Output() savedSignatureAsDataUrl: EventEmitter<string> = new EventEmitter<string>();
 
-  get canCancel(): boolean { return this.segments.length === 0; }
+  get canClear(): boolean { return this.segments.length >  0; }
 
   private get canvas(): HTMLCanvasElement { return this.canvasElementRef.nativeElement; }
   private get context(): CanvasRenderingContext2D { return this.canvas.getContext("2d"); }
